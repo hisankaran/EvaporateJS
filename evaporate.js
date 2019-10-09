@@ -66,6 +66,7 @@
       cloudfront: false,
       s3Acceleration: false,
       mockLocalStorage: false,
+      storageKey: 'awsUploads',
       encodeFilename: true,
       computeContentMd5: false,
       allowS3ExistenceOptimization: false,
@@ -124,7 +125,7 @@
     this.pendingFiles = {};
     this.queuedFiles = [];
     this.filesInProcess = [];
-    historyCache = new HistoryCache(this.config.mockLocalStorage);
+    historyCache = new HistoryCache(this.config.mockLocalStorage, this.config.storageKey);
   };
   Evaporate.create = function (config) {
     var evapConfig = extend({}, config);
@@ -2107,15 +2108,16 @@
   }
 
   var historyCache;
-  function HistoryCache(mockLocalStorage) {
+  function HistoryCache(mockLocalStorage, storageKey) {
     var supported = HistoryCache.supported();
     this.cacheStore = mockLocalStorage ? {} : (supported ? localStorage : undefined);
+    this.storageKey = storageKey;
   }
   HistoryCache.prototype.supported = false;
   HistoryCache.prototype.cacheStore = undefined;
-  HistoryCache.prototype.getItem = function (key) { if (this.cacheStore) { return this.cacheStore[key]; }};
-  HistoryCache.prototype.setItem = function (key, value) { if (this.cacheStore) { this.cacheStore[key] = value; }};
-  HistoryCache.prototype.removeItem = function (key) { if (this.cacheStore) { return delete this.cacheStore[key] }};
+  HistoryCache.prototype.getItem = function (key) { if (this.cacheStore) { return this.cacheStore[this.storageKey || key]; }};
+  HistoryCache.prototype.setItem = function (key, value) { if (this.cacheStore) { this.cacheStore[this.storageKey || key] = value; }};
+  HistoryCache.prototype.removeItem = function (key) { if (this.cacheStore) { return delete this.cacheStore[this.storageKey || key] }};
   HistoryCache.supported = function () {
     var result = false;
     if (typeof window !== 'undefined') {
